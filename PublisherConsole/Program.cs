@@ -3,55 +3,58 @@ using PublisherData;
 using PublisherDomain;
 using Microsoft.EntityFrameworkCore;
 
-using (PubContext context = new PubContext())
+PubContext _context = new PubContext();
+
+// InsertNewAuthorWithNewBook();
+
+void InsertNewAuthorWithNewBook()
 {
-  context.Database.EnsureCreated();
-}
-
-// AddAuthor();
-// GetAuthors();
-// AddAuthorWithBook();
-GetAuthorsWithBooks();
-
-
-void AddAuthor()
-{
-  var author = new Author { FirstName = "Joise", LastName = "New" };
-  using var context = new PubContext();
-  context.Authors.Add(author);
-  context.SaveChanges();
-}
-
-void AddAuthorWithBook()
-{
-  var author = new Author { FirstName = "Julie", LastName = "Lerman" };
-  author.Books.Add(new Book { Title = "Programming EF", PublishDate = new DateTime(2009, 1, 1) });
-  author.Books.Add(new Book { Title = "Programming EF 2nd ED", PublishDate = new DateTime(2010, 8, 1) });
-  using var context = new PubContext();
-  context.Authors.Add(author);
-  context.SaveChanges();
-}
-
-void GetAuthors()
-{
-  using var context = new PubContext();
-  var authors = context.Authors.ToList();
-  foreach (var author in authors)
+  var author = new Author() { FirstName = "Lynda", LastName = "Rutledge" };
+  author.Books.Add(new Book
   {
-    Console.WriteLine(author.FirstName + " " + author.LastName);
-  }
+    Title = "West With Giraffes",
+    PublishDate = new DateTime(2021, 2, 1)
+  });
+  _context.Authors.Add(author);
+  _context.SaveChanges();
 }
 
-void GetAuthorsWithBooks()
+EagerLoadBooksWithAuthors();
+
+void EagerLoadBooksWithAuthors()
 {
-  using var context = new PubContext();
-  var authors = context.Authors.Include(a => a.Books).ToList();
-  foreach (var author in authors)
+  var authors = _context.Authors.Include(a => a.Books
+                                .Where(b => b.PublishDate >= new DateTime(1989, 1, 1))
+                                .OrderBy(b => b.Title)
+  ).ToList();
+
+  authors.ForEach(a =>
   {
-    Console.WriteLine(author.FirstName + " " + author.LastName);
-    foreach (var book in author.Books)
-    {
-        Console.WriteLine("\t" + book.Title);
-    }
-  }
+    Console.WriteLine($"{a.LastName} ({a.Books.Count})");
+    a.Books.ForEach(b => Console.WriteLine("\t" + b.Title));
+  });
+}
+// ModifyingRelatedDataWhenTraked();
+
+void ModifyingRelatedDataWhenTraked()
+{
+  var author = _context.Authors.Include(a => a.Books).FirstOrDefault(a => a.AuthorId == 1);
+  // author.Books[0].BasePrice = (decimal)10.00;
+  // author.Books.Remove(author.Books[1]);
+  _context.ChangeTracker.DetectChanges();
+  var state = _context.ChangeTracker.DebugView.ShortView;
+}
+
+ModifyingRelatedDataWhenNotTracked();
+
+void ModifyingRelatedDataWhenNotTracked()
+{
+  var author = _context.Authors.Include(a => a.Books).FirstOrDefault(a => a.AuthorId == 1);
+  author.Books[0].BasePrice = (decimal)10.00;
+
+
+  // simulate disconnected application
+  var newContext = new PubContext();
+  newContext.Books.Update(author.Books[0]);
+  var state = newContext.ChangeTracker.DebugView.ShortView;
 }
