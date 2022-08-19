@@ -13,7 +13,8 @@ public class PubContext : DbContext
   {
     optionsBuilder
     .UseSqlServer(
-              @"Server=127.0.0.1,1433; Database=PubDatabase; User Id=SA; Password=MyPass@word;"
+              @"Server=(LocalDb)\MSSQLLocalDB;Database=PubDatabase;Trusted_Connection=True;"
+              // @"Server=127.0.0.1,1433; Database=PubDatabase; User Id=SA; Password=MyPass@word;"
         )
     .LogTo(Console.WriteLine, new[] { DbLoggerCategory.Database.Command.Name }, Microsoft.Extensions.Logging.LogLevel.Information);
   }
@@ -55,9 +56,9 @@ public class PubContext : DbContext
                 new Artist {ArtistId = 3, FirstName ="Katharine", LastName="Kuharic"} };
     modelBuilder.Entity<Artist>().HasData(someArtists);
     var someCovers = new Cover[]{
-                new Cover {CoverId = 1, DesignIdeas="How about a left hand in the dark?", DigitalOnly=false},
-                new Cover {CoverId = 2, DesignIdeas= "Should we put a clock?", DigitalOnly=true},
-                new Cover {CoverId = 3, DesignIdeas="A big ear in the clouds?", DigitalOnly = false}};
+                new Cover {CoverId = 1, BookId = 3, DesignIdeas="How about a left hand in the dark?", DigitalOnly=false},
+                new Cover {CoverId = 2, BookId = 2, DesignIdeas= "Should we put a clock?", DigitalOnly=true},
+                new Cover {CoverId = 3, BookId = 1, DesignIdeas="A big ear in the clouds?", DigitalOnly = false}};
     modelBuilder.Entity<Cover>().HasData(someCovers);
 
 
